@@ -1,3 +1,3 @@
 # Sentinel related documents
 
-- [Awesome Sentinel](./awesome-sentinel.md)
+- [Awesome Sentinel](./test.md)
