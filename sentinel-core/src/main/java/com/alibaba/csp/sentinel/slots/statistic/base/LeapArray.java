@@ -40,8 +40,13 @@ import com.alibaba.csp.sentinel.util.TimeUtil;
  */
 public abstract class LeapArray<T> {
 
+    //单位滑动时间窗口的大小，单位是毫秒
     protected int windowLengthInMs;
+
+    //滑动时间窗口个数
     protected int sampleCount;
+
+    //统计时间区间
     protected int intervalInMs;
 
     protected final AtomicReferenceArray<WindowWrap<T>> array;
@@ -96,8 +101,10 @@ public abstract class LeapArray<T> {
     protected abstract WindowWrap<T> resetWindowTo(WindowWrap<T> windowWrap, long startTime);
 
     private int calculateTimeIdx(/*@Valid*/ long timeMillis) {
+        //据timeId算出当前时间窗口在采样窗口区间中的索引idx
         long timeId = timeMillis / windowLengthInMs;
         // Calculate current index so we can map the timestamp to the leap array.
+        // 据timeId算出当前时间窗口在采样窗口区间中的索引idx
         return (int)(timeId % array.length());
     }
 
@@ -115,9 +122,9 @@ public abstract class LeapArray<T> {
         if (timeMillis < 0) {
             return null;
         }
-
         int idx = calculateTimeIdx(timeMillis);
         // Calculate current bucket start time.
+        //根据当前时间算出当前窗口应该对应的窗口开始时间time，以毫秒为单位
         long windowStart = calculateWindowStart(timeMillis);
 
         /*
@@ -127,8 +134,11 @@ public abstract class LeapArray<T> {
          * (2) Bucket is up-to-date, then just return the bucket.
          * (3) Bucket is deprecated, then reset current bucket and clean all deprecated buckets.
          */
+        //循环判断直到获取到一个当前时间窗口
         while (true) {
+            //根据索引idx，在采样窗口数组中取得一个时间窗口old
             WindowWrap<T> old = array.get(idx);
+            //如果old为空，说明该时间窗口还没有创建、则创建一个时间窗口，并将它插入到array的第idx个位置
             if (old == null) {
                 /*
                  *     B0       B1      B2    NULL      B4
@@ -142,7 +152,9 @@ public abstract class LeapArray<T> {
                  * then try to update circular array via a CAS operation. Only one thread can
                  * succeed to update, while other threads yield its time slice.
                  */
+                //创建时间窗口，参数：窗口大小，开始时间，桶（保存统计值）
                 WindowWrap<T> window = new WindowWrap<T>(windowLengthInMs, windowStart, newEmptyBucket(timeMillis));
+                // 通过CAS将新窗口设置到数组中去
                 if (array.compareAndSet(idx, null, window)) {
                     // Successfully updated, return the created bucket.
                     return window;
@@ -163,7 +175,9 @@ public abstract class LeapArray<T> {
                  * that means the time is within the bucket, so directly return the bucket.
                  */
                 return old;
-            } else if (windowStart > old.windowStart()) {
+            }
+            //如果当前窗口的开始时间time大于old的开始时间，则说明old窗口已经过时了，将old的开始时间更新为最新值
+            else if (windowStart > old.windowStart()) {
                 /*
                  *   (old)
                  *             B0       B1      B2    NULL      B4
@@ -184,6 +198,7 @@ public abstract class LeapArray<T> {
                 if (updateLock.tryLock()) {
                     try {
                         // Successfully get the update lock, now we reset the bucket.
+                        // 重置窗口，重新设置窗口的开始时间，以及把统计值重置
                         return resetWindowTo(old, windowStart);
                     } finally {
                         updateLock.unlock();

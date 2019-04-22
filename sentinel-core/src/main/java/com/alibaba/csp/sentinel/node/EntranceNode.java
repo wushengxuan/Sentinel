@@ -35,6 +35,7 @@ import com.alibaba.csp.sentinel.slots.nodeselector.NodeSelectorSlot;
  * @see ContextUtil
  * @see ContextUtil#enter(String, String)
  * @see NodeSelectorSlot
+ * EntranceNode是每个上下文的入口，该节点是挂在root下的，是全局唯一的，每一个context都会对应一个entranceNode
  */
 public class EntranceNode extends DefaultNode {
 

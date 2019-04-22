@@ -55,7 +55,7 @@ public class StatisticSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
             // Do some checking.
             fireEntry(context, resourceWrapper, node, count, prioritized, args);
 
-            // Request passed, add thread count and pass count.
+            // Request passe    d, add thread count and pass count.
             node.increaseThreadNum();
             node.addPassRequest(count);
 

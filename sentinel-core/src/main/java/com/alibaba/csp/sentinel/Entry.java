@@ -52,13 +52,27 @@ public abstract class Entry implements AutoCloseable {
 
     private static final Object[] OBJECTS0 = new Object[0];
 
+    /**
+     * 当前entry的创建时间，毫秒值，用来计算响应时间rt
+     */
     private long createTime;
+
+    /**
+     * 当前Entry所关联的node，会在NodeSelectorSlot插槽中设置，主要是记录了当前Context下的统计信息
+     */
     private Node curNode;
+
     /**
      * {@link Node} of the specific origin, Usually the origin is the Service Consumer.
+     * context的请求源节点，通常是服务的消费端，如果存在的话，在ClusterBuilderSlot的entry方法中设置
+     * 保存了在这个上下文中，所有的调用的统计信息和
      */
     private Node originNode;
     private Throwable error;
+
+    /**
+     * 当前Entry所关联的资源包装器
+     */
     protected ResourceWrapper resourceWrapper;
 
     public Entry(ResourceWrapper resourceWrapper) {
