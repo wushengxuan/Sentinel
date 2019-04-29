@@ -106,6 +106,7 @@ public class SystemRuleManager {
      * @param property the property to listen.
      */
     public static void register2Property(SentinelProperty<List<SystemRule>> property) {
+
         synchronized (listener) {
             currentProperty.removeListener(listener);
             property.addListener(listener);
